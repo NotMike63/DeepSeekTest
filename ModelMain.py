@@ -1,7 +1,7 @@
 print("Imports")
 import os
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, PretrainedConfig
 #from auto_gptq import AutoGPTQForCausalLM
 
 # This method checks for the most common torch devices and sets them
@@ -24,13 +24,16 @@ DEVICE = check_device()
 torch.set_default_device(DEVICE)
 project_path = os.getcwd()
 target_model = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
-tokenizer_path = os.path.join(project_path, target_model, "tokenizer.json")
-quantized_model_path = os.path.join(project_path, target_model, "GPTQ")
 
 dataset = ["auto-gptq is an easy-to-use model quantization library with user-friendly apis, based on GPTQ algorithm."]
 
 tokenizer = AutoTokenizer.from_pretrained(target_model)
-quantized_model = AutoModelForCausalLM.from_pretrained(target_model)
+quantized_model = AutoModelForCausalLM.from_pretrained(target_model,
+                                                       torch_dtype=torch.bfloat16,
+                                                       device_map=DEVICE,
+                                                       cache_dir='DeepSeek-R1-Distill-Qwen-1.5B')
+
+print("Model loaded")
 
 # quantized_model.to(DEVICE)
 # quantized_model.save_pretrained(model_path)
