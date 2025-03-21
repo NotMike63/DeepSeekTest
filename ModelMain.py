@@ -1,27 +1,40 @@
 print("Imports")
 import os
-from transformers import AutoModelForCausalLM, AutoTokenizer, GPTQConfig
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer
 #from auto_gptq import AutoGPTQForCausalLM
 
+# This method checks for the most common torch devices and sets them
+def check_device():
+    device = None
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+        print("Using CUDA")
+    elif torch.backends.mps.is_available():
+        device = torch.device("mps")
+        print("Using MPS")
+    else:
+        device = torch.device("cpu")
+        print("Using CPU")
+    return device
 
 # defining paths
 print("Declaring/Initializing Vars")
-device = "mps"
+DEVICE = check_device()
+torch.set_default_device(DEVICE)
 project_path = os.getcwd()
 target_model = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
 tokenizer_path = os.path.join(project_path, target_model, "tokenizer.json")
 quantized_model_path = os.path.join(project_path, target_model, "GPTQ")
-model_path = os.path.join(project_path, target_model, "model.safetensors")
-#device, __, __ = get_backend()
+
 dataset = ["auto-gptq is an easy-to-use model quantization library with user-friendly apis, based on GPTQ algorithm."]
 
-tokenizer = AutoTokenizer.from_pretrained(pretrained_model_name_or_path=target_model)
-gptq_config = GPTQConfig(bits=4, dataset=dataset, tokenizer=tokenizer)
-quantized_model = AutoModelForCausalLM.from_pretrained(model_path, device_map="mps", quantization_config=gptq_config)
+tokenizer = AutoTokenizer.from_pretrained(target_model)
+quantized_model = AutoModelForCausalLM.from_pretrained(target_model)
 
-quantized_model.to(device)
-quantized_model.save_pretrained(model_path)
-quantized_model.generate()
+# quantized_model.to(DEVICE)
+# quantized_model.save_pretrained(model_path)
+# quantized_model.generate()
 
 # # Setting up tokenizer
 # print("Defining Tokenizer")
